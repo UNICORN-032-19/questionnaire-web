@@ -1,0 +1,12 @@
+site_name: questionnaire
+site_description: Questionnaire Web App
+repo_url: https://github.com/UNICORN-032-19/questionnaire-web
+site_dir: site
+copyright: Copyright &copy; 2019, <a href="https://github.com/UNICORN-032-19">UNICORN-032-19</a>.
+dev_addr: 0.0.0.0:8001
+
+nav:
+  - Home: 'index.md'
+  - API:
+    - Authentication: 'api/authentication.md'
+    - Users: 'api/users.md'
