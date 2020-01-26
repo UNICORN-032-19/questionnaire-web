@@ -1,8 +1,8 @@
 from django.db import models
+from questionnaire.questions.models import Questions
 
-# Create your models here.
 
-class Answer(models.Model):
-    # quiestion_id = models.PositiveIntegerField(primary_key=True)
-    description = models.CharField(max_length=200)
-    is_correct = models.Field(blank=False)
+class Answers(models.Model):
+    quiestion_id = models.ForeignKey(Questions, on_delete=models.CASCADE, blank=False)
+    description = models.TextField()
+    is_correct = models.BooleanField()

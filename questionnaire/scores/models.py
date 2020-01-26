@@ -1,7 +1,9 @@
 from django.db import models
+from questionnaire.users.models import User
+from questionnaire.counts.models import Counts
 
 
 class Scores(models.Model):
-    count = models.CharField(max_length=200)
-    user_id = models.CharField(max_length=200)
+    count_id = models.ForeignKey(Counts, blank=True, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
     result = models.CharField(max_length=200)
