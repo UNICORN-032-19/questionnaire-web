@@ -25,6 +25,7 @@ class Common(Configuration):
         # Your apps
         'questionnaire.users',
         'questionnaire.answers',
+        'questionnaire.useranswers',
 
     )
 
