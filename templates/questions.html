@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Results</title>
+    </head>
+    <body>
+    	{% for question in results %}
+    	<h2>{{ question.q }}</h2>
+		<form action="">
+			{% for answer in question.answers %}
+		  	<input type="radio"> {{ answer }}<br>
+		  	{% endfor %}
+		</form>
+		{% endfor %}
+    </body>
+</html>

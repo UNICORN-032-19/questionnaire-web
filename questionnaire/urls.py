@@ -6,12 +6,12 @@ from django.views.generic.base import RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .users.views import UserViewSet, UserCreateViewSet
-from .questions.views import QuestionViewSet
+import questionnaire.questions.views as q_views
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'users', UserCreateViewSet)
-router.register(r'users', QuestionViewSet)
+# router.register(r'questions', QuestionViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,5 +22,6 @@ urlpatterns = [
     # the 'api-root' from django rest-frameworks default router
     # http://www.django-rest-framework.org/api-guide/routers/#defaultrouter
     re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
+    path('questions/', q_views.questions),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
