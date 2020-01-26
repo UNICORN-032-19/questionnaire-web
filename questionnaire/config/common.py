@@ -15,6 +15,7 @@ class Common(Configuration):
         'django.contrib.sessions',
         'django.contrib.messages',
         'django.contrib.staticfiles',
+        'questionnaire.counts',
 
 
         # Third party apps
@@ -24,7 +25,8 @@ class Common(Configuration):
 
         # Your apps
         'questionnaire.users',
-        'questionnaire.scores'
+        'questionnaire.scores',
+        'questionnaire.useranswers',
 
     )
 
