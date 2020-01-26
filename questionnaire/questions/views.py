@@ -9,4 +9,3 @@ class QuestionViewSet(viewsets.GenericViewSet):
     # queryset = Question.objects.all()
     # serializer_class = QuestionSerializer
     permission_classes = (,)
-
