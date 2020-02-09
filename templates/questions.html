@@ -2,14 +2,49 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Results</title>
+        <title>Questionnarie</title>
     </head>
     <body>
-    	{% for question in results %}
-    	<h2>{{ question.q }}</h2>
-		<form action="">
+        <script
+              src="https://code.jquery.com/jquery-3.4.1.min.js"
+              integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+              crossorigin="anonymous"></script>
+        <script type="text/javascript">
+            function get_scrf_token() {
+                var csrfmiddlewaretoken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+                return csrfmiddlewaretoken;
+            }
+            $( document ).ready(function() {
+                $( ".answer" ).change(function() {
+                    var form = new FormData();
+                    form.append("question_id", this.name);
+                    form.append("answer_id", this.value);
+                    form.append("csrfmiddlewaretoken", get_scrf_token());
+                    var settings = {
+                      "async": true,
+                      // "crossDomain": true,
+                      "url": "http://localhost:8000/questions/save",
+                      "method": "POST",
+                      "headers": {
+                        "cache-control": "no-cache",
+                      },
+                      "processData": false,
+                      "contentType": false,
+                      "mimeType": "multipart/form-data",
+                      "data": form
+                    }
+
+                    return $.ajax(settings);
+                });
+            });
+        </script>
+        {% csrf_token %}
+    	{% for question in questions %}
+    	<h2>{{ question.text }}</h2>
+		<form>
+            <input id="QID" hidden="true" value="{{ question.id }}"/>
 			{% for answer in question.answers %}
-		  	<input type="radio"> {{ answer }}<br>
+		  	<input class="answer" type="radio" value="{{ answer.id }}" name="{{ question.id }}"> {{ answer.description }}<br>
 		  	{% endfor %}
 		</form>
 		{% endfor %}
