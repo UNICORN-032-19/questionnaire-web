@@ -16,54 +16,77 @@
                 return csrfmiddlewaretoken;
             }
             function create_new_count() {
-                var form = new FormData();
-                form.append("csrfmiddlewaretoken", get_scrf_token());
-                form.append("user_id", $( "#user" ).val());
-                var settings = {
-                  "async": true,
-                  // "crossDomain": true,
-                  "url": "http://localhost:8000/counts/new",
-                  "method": "POST",
-                  "headers": {
-                    "cache-control": "no-cache",
-                  },
-                  "processData": false,
-                  "contentType": false,
-                  "mimeType": "multipart/form-data",
-                  "data": form
-                }
-
-                return $.ajax(settings).done(function( data ) {
-                    currentCount = data;
+                $.ajax({
+                    "async": true,
+                    "url" : "http://localhost:8000/api/v1/count/",
+                    "dataType": "json",
+                    "method": "POST",
+                    "data": {
+                        "csrfmiddlewaretoken" : get_scrf_token(),
+                        "user_id" : $( "#user" ).val(),
+                    },
+                    success : function (data) {
+                        alert(data.count_name);
+                        currentCount = data.count_id;
+                    },
                 });
             }
+            function get_questions() {
+                return $.ajax({
+                    "async": true,
+                    "url" : "http://localhost:8000/api/v1/question/",
+                    "dataType": "json",
+                    "method": "GET",
+                    "data": {
+                        "csrfmiddlewaretoken" : get_scrf_token(),
+                    },
+                    success : function (data) {
+                        $.each(data, function(question_id) {
+                            var q_data = data[question_id];
+                            var qId = q_data.id;
+                            var text = q_data.text;
+                            var html = '' +
+                            '<h2>' + text + '</h2>\n' +
+                            '<form>\n' +
+                            '            <input id="QID" hidden="true" value="' + qId + '"/>\n';
+                            var answers = q_data.answers;
+                            $.each(answers, function(answer_id) {
+                                var answer = answers[answer_id];
+                                html = html +
+                                '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                            });
+                            html = html + '</form>';
+                            $( "body" ).append(html);
+                        });
+                    },
+                });         
+            }
             $( document ).ready(function() {
-                $( "#user" ).change(function() {
-                  create_new_count();
-                });
-                $( ".answer" ).change(function() {
-                    var form = new FormData();
-                    form.append("question_id", this.name);
-                    form.append("answer_id", this.value);
-                    form.append("count_id", currentCount);
-                    form.append("user_id", $( "#user" ).val());
-                    form.append("csrfmiddlewaretoken", get_scrf_token());
-                    var settings = {
-                      "async": true,
-                      // "crossDomain": true,
-                      "url": "http://localhost:8000/questions/save",
-                      "method": "POST",
-                      "headers": {
-                        "cache-control": "no-cache",
-                      },
-                      "processData": false,
-                      "contentType": false,
-                      "mimeType": "multipart/form-data",
-                      "data": form
-                    }
+                get_questions()
+                .done(function() {
+                    $( "#user" ).change(function() {
+                      create_new_count();
+                    });
+                    $( ".answer" ).change(function() {
+                        $.ajax({
+                            "async": true,
+                            "url" : "http://localhost:8000/api/v1/user_answer/",
+                            "dataType": "json",
+                            "method": "POST",
+                            "data": {
+                                "csrfmiddlewaretoken" : get_scrf_token(),
+                                "question_id": parseInt(this.name),
+                                "answer_id": parseInt(this.value),
+                                "count_id": parseInt(currentCount),
+                            },
+                            success : function (data) {
+                                console.log(data);
+                            },
+                        });
 
-                    return $.ajax(settings);
+                    });                    
                 });
+
             });
         </script>
       {% csrf_token %}
@@ -72,14 +95,5 @@
         <option value="{{ user.id }}">{{ user.username }}</option>
         {% endfor %}
       </select>
-      {% for question in questions %}
-      <h2>{{ question.text }}</h2>
-      <form>
-        <input id="QID" hidden="true" value="{{ question.id }}"/>
-        {% for answer in question.answers %}
-          <input class="answer" type="radio" value="{{ answer.id }}" name="{{ question.id }}"> {{ answer.description }}<br>
-        {% endfor %}
-      </form>
-      {% endfor %}
     </body>
 </html>

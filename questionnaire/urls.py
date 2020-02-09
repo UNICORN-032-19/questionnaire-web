@@ -13,7 +13,9 @@ import questionnaire.useranswers.views as ua_views
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'users', UserCreateViewSet)
-# router.register(r'questions', QuestionViewSet)
+router.register(r'count', c_views.CountsViewset)
+router.register(r'question', q_views.QuestionViewSet)
+router.register(r'user_answer', ua_views.UserAnswersViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,8 +27,6 @@ urlpatterns = [
     # http://www.django-rest-framework.org/api-guide/routers/#defaultrouter
     re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
     path('questions/', q_views.questions),
-    path('questions/save', q_views.save_question),
-    path('counts/new', c_views.count_new),
     path('results/', ua_views.results),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
