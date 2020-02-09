@@ -10,15 +10,43 @@
               integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
               crossorigin="anonymous"></script>
         <script type="text/javascript">
+            var currentCount = undefined;
             function get_scrf_token() {
                 var csrfmiddlewaretoken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
                 return csrfmiddlewaretoken;
             }
+            function create_new_count() {
+                var form = new FormData();
+                form.append("csrfmiddlewaretoken", get_scrf_token());
+                form.append("user_id", $( "#user" ).val());
+                var settings = {
+                  "async": true,
+                  // "crossDomain": true,
+                  "url": "http://localhost:8000/counts/new",
+                  "method": "POST",
+                  "headers": {
+                    "cache-control": "no-cache",
+                  },
+                  "processData": false,
+                  "contentType": false,
+                  "mimeType": "multipart/form-data",
+                  "data": form
+                }
+
+                return $.ajax(settings).done(function( data ) {
+                    currentCount = data;
+                });
+            }
             $( document ).ready(function() {
+                $( "#user" ).change(function() {
+                  create_new_count();
+                });
                 $( ".answer" ).change(function() {
                     var form = new FormData();
                     form.append("question_id", this.name);
                     form.append("answer_id", this.value);
+                    form.append("count_id", currentCount);
+                    form.append("user_id", $( "#user" ).val());
                     form.append("csrfmiddlewaretoken", get_scrf_token());
                     var settings = {
                       "async": true,
@@ -38,15 +66,20 @@
                 });
             });
         </script>
-        {% csrf_token %}
-    	{% for question in questions %}
-    	<h2>{{ question.text }}</h2>
-		<form>
-            <input id="QID" hidden="true" value="{{ question.id }}"/>
-			{% for answer in question.answers %}
-		  	<input class="answer" type="radio" value="{{ answer.id }}" name="{{ question.id }}"> {{ answer.description }}<br>
-		  	{% endfor %}
-		</form>
-		{% endfor %}
+      {% csrf_token %}
+      <select id="user">
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+      </select>
+      {% for question in questions %}
+      <h2>{{ question.text }}</h2>
+      <form>
+        <input id="QID" hidden="true" value="{{ question.id }}"/>
+        {% for answer in question.answers %}
+          <input class="answer" type="radio" value="{{ answer.id }}" name="{{ question.id }}"> {{ answer.description }}<br>
+        {% endfor %}
+      </form>
+      {% endfor %}
     </body>
 </html>

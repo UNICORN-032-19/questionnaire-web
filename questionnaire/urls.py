@@ -7,6 +7,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .users.views import UserViewSet, UserCreateViewSet
 import questionnaire.questions.views as q_views
+import questionnaire.counts.views as c_views
+import questionnaire.useranswers.views as ua_views
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -24,5 +26,7 @@ urlpatterns = [
     re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
     path('questions/', q_views.questions),
     path('questions/save', q_views.save_question),
+    path('counts/new', c_views.count_new),
+    path('results/', ua_views.results),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
