@@ -47,5 +47,4 @@ class QuestionViewSet(viewsets.GenericViewSet):
 
 def questions(request):
     users = User.objects.all()
-    results = ua_views.results(request)
-    return render(request, 'questions.html', context={"users": users, "results": results})
+    return render(request, 'questions.html', context={"users": users})
