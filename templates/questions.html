@@ -52,12 +52,17 @@
                             var html = '' +
                             '<h2>' + text + '</h2>\n' +
                             '<form>\n' +
-                            '            <input id="QID" hidden="true" value="' + qId + '"/>\n';
+                            '            <input id="QID_' + qId + '" hidden="true" value="' + qId + '" multiple-answers="' + q_data.multiple_answers + '"/>\n';
                             var answers = q_data.answers;
                             $.each(answers, function(answer_id) {
                                 var answer = answers[answer_id];
-                                html = html +
-                                '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                if (q_data.multiple_answers) {
+                                    html = html +
+                                    '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                } else {
+                                    html = html +
+                                    '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                }
                             });
                             html = html + '</form>';
                             $( "body" ).append(html);
@@ -106,6 +111,17 @@
                       create_new_count();
                     });
                     $( ".answer" ).change(function() {
+                        var question = $("#QID_" + this.name);
+                        var answer_id = [];
+                        if (question.attr("multiple-answers") === "true") {
+                            $("input[name='" + this.name + "']").each(function (index, element) {
+                                if (element.checked) {
+                                    answer_id.push(parseInt(element.value));
+                                }
+                            })
+                        } else {
+                            answer_id.push(parseInt(this.value));
+                        }
                         $.ajax({
                             "async": true,
                             "url" : "http://localhost:8000/api/v1/user_answer/",
@@ -114,7 +130,7 @@
                             "data": {
                                 "csrfmiddlewaretoken" : get_scrf_token(),
                                 "question_id": parseInt(this.name),
-                                "answer_id": parseInt(this.value),
+                                "answer_id": answer_id,
                                 "count_id": parseInt(currentCount),
                             },
                             success : function (data) {
