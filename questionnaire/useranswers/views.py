@@ -11,7 +11,7 @@ import json
 
 class UserAnswersSerializer(serializers.Serializer):
     question_id = serializers.IntegerField()
-    answer_id = serializers.IntegerField()
+    answer_id = serializers.ListField(child=serializers.IntegerField())
     count_id = serializers.IntegerField()
 
 
@@ -33,8 +33,8 @@ class UserAnswersViewSet(viewsets.GenericViewSet):
                 results[username][count_id] = []
             results[username][count_id] += [{
                 "text": obj.question_id.text,
-                "answer": obj.answer_id.description,
-                "is_correct": obj.answer_id.is_correct,
+                "answer": [x.description for x in obj.answer_id.values()],
+                "is_correct": all([x.is_correct for x in obj.answer_id.values()]),
             }]
         return HttpResponse(json.dumps(results))
 
