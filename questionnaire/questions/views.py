@@ -21,6 +21,7 @@ class QuestionSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     text = serializers.CharField()
     answers = serializers.SerializerMethodField()
+    multiple_answers = serializers.BooleanField()
 
     def get_answers(self, obj):
         serializer = AnswerSerializer()
