@@ -3,8 +3,12 @@
     <head>
         <meta charset="utf-8" />
         <title>Questionnarie</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     </head>
     <body>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script
               src="https://code.jquery.com/jquery-3.4.1.min.js"
               integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -61,6 +65,40 @@
                     },
                 });         
             }
+            function get_user_answers() {
+                return $.ajax({
+                    "async": true,
+                    "url" : "http://localhost:8000/api/v1/user_answer/",
+                    "dataType": "json",
+                    "method": "GET",
+                    "data": {
+                        "csrfmiddlewaretoken" : get_scrf_token(),
+                    },
+                    success : function (data) {
+                        $.each(data, function(question_id) {
+                            var html = '';
+                            for (username in data) {
+                                html = html +
+                                '<h2>' + username + '</h2>';
+                                for (count_id in data[username]) {
+                                    html = html +
+                                    '<h3>' +  count_id + '</h3>';
+                                    var user_answers = data[username][count_id];
+                                    for (ua in user_answers) {
+                                        var user_answer = user_answers[ua];
+                                        html = html +
+                                        '<h4>' + user_answer.text + ' : ' +
+                                        user_answer.answer + ' : ' + user_answer.is_correct +
+                                        '</h4>';
+                                    }
+                                }
+                            }
+                            $( "#pills-user-answers" ).append(html);
+                        });
+                    },
+                });         
+            }
+
             $( document ).ready(function() {
                 get_questions()
                 .done(function() {
@@ -80,20 +118,35 @@
                                 "count_id": parseInt(currentCount),
                             },
                             success : function (data) {
-                                console.log(data);
+                                // console.log(data);
                             },
                         });
 
                     });                    
                 });
+                get_user_answers();
 
             });
         </script>
       {% csrf_token %}
-      <select id="user">
-        {% for user in users %}
-        <option value="{{ user.id }}">{{ user.username }}</option>
-        {% endfor %}
-      </select>
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="pills-questions-tab" data-toggle="pill" href="#pills-questions" role="tab" aria-controls="pills-questions" aria-selected="true">Questions</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="pills-user-answers-tab" data-toggle="pill" href="#pills-user-answers" role="tab" aria-controls="pills-user-answers" aria-selected="false">User Answers</a>
+          </li>
+        </ul>
+        <div class="tab-content" id="pills-tabContent">
+          <div class="tab-pane fade show active" id="pills-questions" role="tabpanel" aria-labelledby="pills-questions-tab">
+            <select id="user">
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="tab-pane fade" id="pills-user-answers" role="tabpanel" aria-labelledby="pills-user-answers-tab">
+          </div>
+        </div>
     </body>
 </html>

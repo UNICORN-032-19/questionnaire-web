@@ -9,6 +9,7 @@ from questionnaire.users.models import User
 from django.http import HttpResponse
 import json
 from questionnaire.useranswers.models import UserAnswers
+import questionnaire.useranswers.views as ua_views
 
 
 class AnswerSerializer(serializers.Serializer):
@@ -46,4 +47,5 @@ class QuestionViewSet(viewsets.GenericViewSet):
 
 def questions(request):
     users = User.objects.all()
-    return render(request, 'questions.html', context={"users": users})
+    results = ua_views.results(request)
+    return render(request, 'questions.html', context={"users": users, "results": results})

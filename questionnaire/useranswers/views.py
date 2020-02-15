@@ -6,6 +6,7 @@ from questionnaire.counts.models import Counts
 from questionnaire.users.models import User
 from questionnaire.useranswers.models import UserAnswers
 from django.http import HttpResponse
+import json
 
 
 class UserAnswersSerializer(serializers.Serializer):
@@ -20,8 +21,22 @@ class UserAnswersViewSet(viewsets.GenericViewSet):
     permission_classes = ()
 
 
-    # def list(self, request):
-    #     return HttpResponse(json.dumps([]))
+    def list(self, request):
+        objects = UserAnswers.objects.all().order_by('user_id', 'count_id')
+        results = {}
+        for obj in objects:
+            username = obj.user_id.username
+            count_id = obj.count_id.id
+            if username not in results:
+                results[username] = {}
+            if count_id not in results[username]:
+                results[username][count_id] = []
+            results[username][count_id] += [{
+                "text": obj.question_id.text,
+                "answer": obj.answer_id.description,
+                "is_correct": obj.answer_id.is_correct,
+            }]
+        return HttpResponse(json.dumps(results))
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -42,21 +57,3 @@ class UserAnswersViewSet(viewsets.GenericViewSet):
             obj.save()
             return HttpResponse(str(obj.id))
         return HttpResponse("Received invalid data")
-
-
-def results(request):
-    objects = UserAnswers.objects.all().order_by('user_id', 'count_id')
-    results = {}
-    for obj in objects:
-        username = obj.user_id.username
-        count_id = obj.count_id.id
-        if username not in results:
-            results[username] = {}
-        if count_id not in results[username]:
-            results[username][count_id] = []
-        results[username][count_id] += [{
-            "text": obj.question_id.text,
-            "answer": obj.answer_id.description,
-            "is_correct": obj.answer_id.is_correct,
-        }]
-    return render(request, 'results.html', context={"results": results})
