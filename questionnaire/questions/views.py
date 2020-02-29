@@ -10,6 +10,7 @@ from django.http import HttpResponse
 import json
 from questionnaire.useranswers.models import UserAnswers
 import questionnaire.useranswers.views as ua_views
+from django.contrib.auth.decorators import login_required
 
 
 class AnswerSerializer(serializers.Serializer):
@@ -41,11 +42,17 @@ class QuestionViewSet(viewsets.GenericViewSet):
 
 
     def list(self, request):
+        current_count = int(request.GET.get("current_count", 0))
+        if not current_count:
+            return HttpResponse(status=400, content=json.dumps({"error": "Count not specified"}))
         serializer = self.serializer_class()
-        result = [serializer.to_representation(x) for x in self.queryset]
+        questions = [serializer.to_representation(x) for x in self.queryset]
+        answered = UserAnswers.objects.filter(user_id=request.user, count_id=Counts.objects.get(pk=current_count))
+        answered = {x.question_id.id: [y["id"] for y in x.answer_id.values()] for x in answered}
+        result = {"questions": questions, "answered": answered}
         return HttpResponse(json.dumps(result))
 
 
+@login_required
 def questions(request):
-    users = User.objects.all()
-    return render(request, 'questions.html', context={"users": users})
+    return render(request, 'questions.html')

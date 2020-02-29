@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from questionnaire.counts.models import Counts
+from questionnaire.counts.models import Counts, IN_PROGRESS_STATE
 from questionnaire.users.models import User
 from questionnaire.useranswers.models import UserAnswers
 from django.http import HttpResponse
@@ -8,18 +8,19 @@ import json
 
 class CountsViewset(viewsets.ViewSet):
     queryset = Counts.objects.all()
-    # serializer_class = QuestionSerializer
     permission_classes = ()
 
     def create(self, request):
-        user_id = self.request.data.get("user_id")
-        user = User.objects.filter(id=user_id)
+        user = request.user
         if user:
-            user = user[0]
-            current_count = UserAnswers.objects.filter(user_id=user).count() + 1
-            count_name = "Count #"+str(current_count)
-            count = Counts(user_id=user, name=count_name)
-            count.save()
-            return HttpResponse(json.dumps({"count_id": count.id, "count_name": count_name}))
+            counts = Counts.objects.filter(user_id=user, state=IN_PROGRESS_STATE)[:1]
+            if not counts:
+                new_count = UserAnswers.objects.filter(user_id=user).count() + 1
+                count_name = "Count #"+str(new_count)
+                count = Counts(user_id=user, name=count_name)
+                count.save()
+            else:
+                count = counts[0]
+            return HttpResponse(json.dumps({"count_id": count.id, "count_name": count.name}))
         else:
             return HttpResponse(json.dumps({"error": "User not Found"}))

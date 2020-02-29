@@ -22,6 +22,7 @@ class Common(Configuration):
         'rest_framework',            # utilities for rest apis
         'rest_framework.authtoken',  # token authentication
         'django_filters',            # for filtering rest endpoints
+        'django_extensions',
 
         # Your apps
         'questionnaire.users',
@@ -76,7 +77,8 @@ class Common(Configuration):
     USE_I18N = False
     USE_L10N = True
     USE_TZ = True
-    LOGIN_REDIRECT_URL = '/'
+    LOGIN_URL = '/admin/login/'
+    LOGIN_REDIRECT_URL = '/admin/'
 
     # Static files (CSS, JavaScript, Images)
     # https://docs.djangoproject.com/en/2.0/howto/static-files/

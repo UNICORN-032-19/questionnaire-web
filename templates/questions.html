@@ -13,14 +13,17 @@
               src="https://code.jquery.com/jquery-3.4.1.min.js"
               integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
               crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/coreapi@latest/dist/coreapi.js"></script>
         <script type="text/javascript">
+            var coreapi = window.coreapi;
+            var client = new coreapi.Client()
             var currentCount = undefined;
             function get_scrf_token() {
                 var csrfmiddlewaretoken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
                 return csrfmiddlewaretoken;
             }
             function create_new_count() {
-                $.ajax({
+                return $.ajax({
                     "async": true,
                     "url" : "http://localhost:8000/api/v1/count/",
                     "dataType": "json",
@@ -43,10 +46,11 @@
                     "method": "GET",
                     "data": {
                         "csrfmiddlewaretoken" : get_scrf_token(),
+                        "current_count": currentCount,
                     },
                     success : function (data) {
-                        $.each(data, function(question_id) {
-                            var q_data = data[question_id];
+                        $.each(data["questions"], function(question_id) {
+                            var q_data = data["questions"][question_id];
                             var qId = q_data.id;
                             var text = q_data.text;
                             var html = '' +
@@ -57,11 +61,21 @@
                             $.each(answers, function(answer_id) {
                                 var answer = answers[answer_id];
                                 if (q_data.multiple_answers) {
-                                    html = html +
-                                    '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                    if (data["answered"][qId] && data["answered"][qId].includes(answer.id)){
+                                         html = html +
+                                        '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '" checked>' + answer.description + '\n            <br>\n';                                       
+                                    } else {
+                                        html = html +
+                                        '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';                                        
+                                    }
                                 } else {
-                                    html = html +
-                                    '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                    if (data["answered"][qId] && data["answered"][qId].includes(answer.id)){
+                                        html = html +
+                                        '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '" checked>' + answer.description + '\n            <br>\n';
+                                    } else {
+                                        html = html +
+                                        '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
+                                    }
                                 }
                             });
                             html = html + '</form>';
@@ -105,61 +119,67 @@
             }
 
             $( document ).ready(function() {
-                get_questions()
-                .done(function() {
-                    $( "#user" ).change(function() {
-                      create_new_count();
-                    });
-                    $( ".answer" ).change(function() {
-                        var question = $("#QID_" + this.name);
-                        var answer_id = [];
-                        if (question.attr("multiple-answers") === "true") {
-                            $("input[name='" + this.name + "']").each(function (index, element) {
-                                if (element.checked) {
-                                    answer_id.push(parseInt(element.value));
-                                }
-                            })
-                        } else {
-                            answer_id.push(parseInt(this.value));
-                        }
-                        $.ajax({
-                            "async": true,
-                            "url" : "http://localhost:8000/api/v1/user_answer/",
-                            "dataType": "json",
-                            "method": "POST",
-                            "data": {
+                create_new_count().done(function() {
+                    get_questions()
+                    .done(function() {
+                        $( ".answer" ).change(function() {
+                            var question = $("#QID_" + this.name);
+                            var answer_id = [];
+                            if (question.attr("multiple-answers") === "true") {
+                                $("input[name='" + this.name + "']").each(function (index, element) {
+                                    if (element.checked) {
+                                        answer_id.push(parseInt(element.value));
+                                    }
+                                })
+                            } else {
+                                answer_id.push(parseInt(this.value));
+                            }
+                            var data = {
                                 "csrfmiddlewaretoken" : get_scrf_token(),
                                 "question_id": parseInt(this.name),
                                 "answer_id": answer_id,
                                 "count_id": parseInt(currentCount),
-                            },
-                            success : function (data) {
-                                // console.log(data);
-                            },
+                            };
+                            var xhr = new XMLHttpRequest();
+                            xhr.open("POST", "http://localhost:8000/api/v1/user_answer/", true);
+                            xhr.setRequestHeader('Content-Type', 'application/json');
+                            xhr.setRequestHeader("X-CSRFToken", get_scrf_token());
+                            xhr.send(JSON.stringify(data));
                         });
-
-                    });                    
+                    });                  
                 });
                 get_user_answers();
 
             });
         </script>
       {% csrf_token %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="/questions/">Questionnaire</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/questions/">Home <span class="sr-only">(current)</span></a>
+              </li>
+            </ul>
+              <a href="/admin/logout/" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
+          </div>
+        </nav>
         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
           <li class="nav-item">
             <a class="nav-link active" id="pills-questions-tab" data-toggle="pill" href="#pills-questions" role="tab" aria-controls="pills-questions" aria-selected="true">Questions</a>
           </li>
+          {% if user.is_authenticated and user.username == 'admin' %}
           <li class="nav-item">
             <a class="nav-link" id="pills-user-answers-tab" data-toggle="pill" href="#pills-user-answers" role="tab" aria-controls="pills-user-answers" aria-selected="false">User Answers</a>
           </li>
+          {% endif %}
         </ul>
         <div class="tab-content" id="pills-tabContent">
           <div class="tab-pane fade show active" id="pills-questions" role="tabpanel" aria-labelledby="pills-questions-tab">
-            <select id="user">
-              {% for user in users %}
-              <option value="{{ user.id }}">{{ user.username }}</option>
-              {% endfor %}
-            </select>
           </div>
           <div class="tab-pane fade" id="pills-user-answers" role="tabpanel" aria-labelledby="pills-user-answers-tab">
           </div>
