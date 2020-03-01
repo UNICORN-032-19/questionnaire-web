@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from questionnaire.counts.models import Counts, IN_PROGRESS_STATE
+from questionnaire.counts.models import Counts, IN_PROGRESS_STATE, DONE_STATE
 from questionnaire.users.models import User
 from questionnaire.useranswers.models import UserAnswers
 from django.http import HttpResponse
@@ -24,3 +24,9 @@ class CountsViewset(viewsets.ViewSet):
             return HttpResponse(json.dumps({"count_id": count.id, "count_name": count.name}))
         else:
             return HttpResponse(json.dumps({"error": "User not Found"}))
+
+    def put(self, request, pk=None):
+        count = Counts.objects.get(pk=pk)
+        if count:
+            count.state = DONE_STATE
+            count.save()

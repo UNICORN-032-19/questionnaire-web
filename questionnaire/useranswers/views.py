@@ -30,12 +30,20 @@ class UserAnswersViewSet(viewsets.GenericViewSet):
             if username not in results:
                 results[username] = {}
             if count_id not in results[username]:
-                results[username][count_id] = []
-            results[username][count_id] += [{
+                results[username][count_id] = dict(
+                    result="",
+                    answers=[]
+                )
+            results[username][count_id]["answers"] += [{
                 "text": obj.question_id.text,
                 "answer": [x["description"] for x in obj.answer_id.values()],
                 "is_correct": all([x["is_correct"] for x in obj.answer_id.values()]),
             }]
+        for username, u_data in results.items():
+            for count_id, c_data in u_data.items():
+                all_a = len(c_data["answers"])
+                correct_a = len([x['is_correct'] for x in c_data["answers"] if x['is_correct']])
+                c_data["result"] = f"{correct_a}/{all_a}"
         return HttpResponse(json.dumps(results))
 
     def create(self, request):

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
     <head>
@@ -14,144 +15,7 @@
               integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
               crossorigin="anonymous"></script>
         <script src="https://unpkg.com/coreapi@latest/dist/coreapi.js"></script>
-        <script type="text/javascript">
-            var coreapi = window.coreapi;
-            var client = new coreapi.Client()
-            var currentCount = undefined;
-            function get_scrf_token() {
-                var csrfmiddlewaretoken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-                return csrfmiddlewaretoken;
-            }
-            function create_new_count() {
-                return $.ajax({
-                    "async": true,
-                    "url" : "http://localhost:8000/api/v1/count/",
-                    "dataType": "json",
-                    "method": "POST",
-                    "data": {
-                        "csrfmiddlewaretoken" : get_scrf_token(),
-                        "user_id" : $( "#user" ).val(),
-                    },
-                    success : function (data) {
-                        alert(data.count_name);
-                        currentCount = data.count_id;
-                    },
-                });
-            }
-            function get_questions() {
-                return $.ajax({
-                    "async": true,
-                    "url" : "http://localhost:8000/api/v1/question/",
-                    "dataType": "json",
-                    "method": "GET",
-                    "data": {
-                        "csrfmiddlewaretoken" : get_scrf_token(),
-                        "current_count": currentCount,
-                    },
-                    success : function (data) {
-                        $.each(data["questions"], function(question_id) {
-                            var q_data = data["questions"][question_id];
-                            var qId = q_data.id;
-                            var text = q_data.text;
-                            var html = '' +
-                            '<h2>' + text + '</h2>\n' +
-                            '<form>\n' +
-                            '            <input id="QID_' + qId + '" hidden="true" value="' + qId + '" multiple-answers="' + q_data.multiple_answers + '"/>\n';
-                            var answers = q_data.answers;
-                            $.each(answers, function(answer_id) {
-                                var answer = answers[answer_id];
-                                if (q_data.multiple_answers) {
-                                    if (data["answered"][qId] && data["answered"][qId].includes(answer.id)){
-                                         html = html +
-                                        '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '" checked>' + answer.description + '\n            <br>\n';                                       
-                                    } else {
-                                        html = html +
-                                        '            <input class="answer" type="checkbox" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';                                        
-                                    }
-                                } else {
-                                    if (data["answered"][qId] && data["answered"][qId].includes(answer.id)){
-                                        html = html +
-                                        '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '" checked>' + answer.description + '\n            <br>\n';
-                                    } else {
-                                        html = html +
-                                        '            <input class="answer" type="radio" value="' + answer.id + '" name="' + qId + '">' + answer.description + '\n            <br>\n';
-                                    }
-                                }
-                            });
-                            html = html + '</form>';
-                            $( "body" ).append(html);
-                        });
-                    },
-                });         
-            }
-            function get_user_answers() {
-                return $.ajax({
-                    "async": true,
-                    "url" : "http://localhost:8000/api/v1/user_answer/",
-                    "dataType": "json",
-                    "method": "GET",
-                    "data": {
-                        "csrfmiddlewaretoken" : get_scrf_token(),
-                    },
-                    success : function (data) {
-                        $.each(data, function(question_id) {
-                            var html = '';
-                            for (username in data) {
-                                html = html +
-                                '<h2>' + username + '</h2>';
-                                for (count_id in data[username]) {
-                                    html = html +
-                                    '<h3>' +  count_id + '</h3>';
-                                    var user_answers = data[username][count_id];
-                                    for (ua in user_answers) {
-                                        var user_answer = user_answers[ua];
-                                        html = html +
-                                        '<h4>' + user_answer.text + ' : ' +
-                                        user_answer.answer + ' : ' + user_answer.is_correct +
-                                        '</h4>';
-                                    }
-                                }
-                            }
-                            $( "#pills-user-answers" ).append(html);
-                        });
-                    },
-                });         
-            }
-
-            $( document ).ready(function() {
-                create_new_count().done(function() {
-                    get_questions()
-                    .done(function() {
-                        $( ".answer" ).change(function() {
-                            var question = $("#QID_" + this.name);
-                            var answer_id = [];
-                            if (question.attr("multiple-answers") === "true") {
-                                $("input[name='" + this.name + "']").each(function (index, element) {
-                                    if (element.checked) {
-                                        answer_id.push(parseInt(element.value));
-                                    }
-                                })
-                            } else {
-                                answer_id.push(parseInt(this.value));
-                            }
-                            var data = {
-                                "csrfmiddlewaretoken" : get_scrf_token(),
-                                "question_id": parseInt(this.name),
-                                "answer_id": answer_id,
-                                "count_id": parseInt(currentCount),
-                            };
-                            var xhr = new XMLHttpRequest();
-                            xhr.open("POST", "http://localhost:8000/api/v1/user_answer/", true);
-                            xhr.setRequestHeader('Content-Type', 'application/json');
-                            xhr.setRequestHeader("X-CSRFToken", get_scrf_token());
-                            xhr.send(JSON.stringify(data));
-                        });
-                    });                  
-                });
-                get_user_answers();
-
-            });
-        </script>
+        <script type="text/javascript" src='{% static "main.js" %}'></script>
       {% csrf_token %}
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <a class="navbar-brand" href="/questions/">Questionnaire</a>
@@ -180,6 +44,7 @@
         </ul>
         <div class="tab-content" id="pills-tabContent">
           <div class="tab-pane fade show active" id="pills-questions" role="tabpanel" aria-labelledby="pills-questions-tab">
+            <h3 id="count">Count#</h3><button class="done">Done</button>
           </div>
           <div class="tab-pane fade" id="pills-user-answers" role="tabpanel" aria-labelledby="pills-user-answers-tab">
           </div>
