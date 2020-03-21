@@ -16,6 +16,7 @@ class Common(Configuration):
         'django.contrib.messages',
         'django.contrib.staticfiles',
         'questionnaire.counts',
+        'django.forms',
 
 
         # Third party apps
@@ -23,6 +24,7 @@ class Common(Configuration):
         'rest_framework.authtoken',  # token authentication
         'django_filters',            # for filtering rest endpoints
         'django_extensions',
+        'taggit',
 
         # Your apps
         'questionnaire.users',
@@ -94,6 +96,8 @@ class Common(Configuration):
     # Media files
     MEDIA_ROOT = join(os.path.dirname(BASE_DIR), 'media')
     MEDIA_URL = '/media/'
+
+    FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
     TEMPLATES = [
         {
